@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Task Board</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0d1117;--surface:#161b22;--border:#30363d;--text:#e6edf3;--text2:#8b949e;--blue:#1f6feb;--green:#238636;--purple:#8957e5;--orange:#d29922;--red:#f85149}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+header{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+header h1{font-size:20px;font-weight:600}
+.stats{display:flex;gap:16px;font-size:13px;color:var(--text2)}
+.stats span{display:flex;align-items:center;gap:4px}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.board{display:flex;gap:16px;padding:20px 24px;overflow-x:auto;min-height:calc(100vh - 65px)}
+.column{flex:1;min-width:280px;max-width:400px}
+.column-header{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);padding:8px 4px;display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.column-header .count{background:var(--border);border-radius:10px;padding:1px 8px;font-size:12px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px;cursor:pointer;transition:all .15s ease;border-left:3px solid transparent}
+.card:hover{border-color:var(--border);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.card.mining{border-left-color:var(--blue)}
+.card.api-factory{border-left-color:var(--green)}
+.card.infra{border-left-color:var(--purple)}
+.card-title{font-size:14px;font-weight:600;margin-bottom:4px}
+.card-desc{font-size:12px;color:var(--text2);margin-bottom:8px;line-height:1.4}
+.card-meta{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--text2)}
+.badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:500;text-transform:uppercase;letter-spacing:.3px}
+.badge.mining{background:rgba(31,111,235,.15);color:#58a6ff}
+.badge.api-factory{background:rgba(35,134,54,.15);color:#3fb950}
+.badge.infra{background:rgba(137,87,229,.15);color:#bc8cff}
+.card-details{max-height:0;overflow:hidden;transition:max-height .3s ease;font-size:12px;color:var(--text2);line-height:1.6}
+.card.expanded .card-details{max-height:300px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.status-actions{display:flex;gap:6px;margin-top:8px}
+.status-actions button{font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text2);cursor:pointer;transition:all .15s}
+.status-actions button:hover{border-color:var(--blue);color:var(--text)}
+.status-actions button.active{background:var(--blue);border-color:var(--blue);color:#fff}
+@media(max-width:768px){.board{flex-direction:column;padding:12px}.column{max-width:100%}header{padding:12px 16px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>📋 Task Board</h1>
+  <div class="stats" id="stats"></div>
+</header>
+<div class="board" id="board"></div>
+<script>
+const COLS = [
+  {key:'todo', label:'To Do'},
+  {key:'in_progress', label:'In Progress'},
+  {key:'done', label:'Done'}
+];
+
+let tasks = [];
+
+async function load() {
+  if (window.TASKS_DATA) {
+    tasks = window.TASKS_DATA.tasks;
+    render();
+    return;
+  }
+  const r = await fetch('/api/tasks');
+  const d = await r.json();
+  tasks = d.tasks;
+  render();
+}
+
+function fmtDate(s) {
+  if (!s) return '';
+  const d = new Date(s);
+  return d.toLocaleDateString('en-AU',{day:'numeric',month:'short'}) + ' ' + d.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit',hour12:false});
+}
+
+async function moveTask(id, status) {
+  await fetch(`/api/tasks/${id}`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status})});
+  await load();
+}
+
+function render() {
+  const board = document.getElementById('board');
+  const stats = document.getElementById('stats');
+  const counts = {};
+  COLS.forEach(c => counts[c.key] = 0);
+  tasks.forEach(t => counts[t.status] = (counts[t.status]||0)+1);
+  stats.innerHTML = `<span><span class="dot" style="background:var(--orange)"></span>${counts.todo||0} todo</span><span><span class="dot" style="background:var(--blue)"></span>${counts.in_progress||0} active</span><span><span class="dot" style="background:var(--green)"></span>${counts.done||0} done</span>`;
+
+  board.innerHTML = COLS.map(col => {
+    const items = tasks.filter(t => t.status === col.key);
+    return `<div class="column"><div class="column-header">${col.label}<span class="count">${items.length}</span></div>${items.map(t => `
+      <div class="card ${t.project}" onclick="this.classList.toggle('expanded')" data-id="${t.id}">
+        <div class="card-title">${esc(t.title)}</div>
+        <div class="card-desc">${esc(t.description)}</div>
+        <div class="card-meta"><span class="badge ${t.project}">${t.project}</span><span>${fmtDate(t.updated_at)}</span></div>
+        <div class="card-details">
+          <p>${esc(t.details||'No details yet.')}</p>
+          ${t.sub_agent_id ? `<p style="margin-top:6px">🤖 Agent: ${esc(t.sub_agent_id)}</p>` : ''}
+          <div class="status-actions">
+            ${COLS.map(c=>`<button class="${t.status===c.key?'active':''}" onclick="event.stopPropagation();moveTask('${t.id}','${c.key}')">${c.label}</button>`).join('')}
+          </div>
+        </div>
+      </div>`).join('')}</div>`;
+  }).join('');
+}
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+load();
+if (!window.TASKS_DATA) setInterval(load, 30000);
+</script>
+</body>
+</html>
