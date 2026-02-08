@@ -54,12 +54,8 @@ const COLS = [
 let tasks = [];
 
 async function load() {
-  if (window.TASKS_DATA) {
-    tasks = window.TASKS_DATA.tasks;
-    render();
-    return;
-  }
-  const r = await fetch('/api/tasks');
+  // Fetch tasks.json directly from GitHub (always live, no build needed)
+  const r = await fetch('https://raw.githubusercontent.com/klaud-austi/austi-dashboard/main/tasks.json');
   const d = await r.json();
   tasks = d.tasks;
   render();
