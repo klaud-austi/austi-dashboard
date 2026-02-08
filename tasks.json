@@ -204,6 +204,10 @@
       "description": "Firewall, SSH hardening, disable rpcbind",
       "status": "done",
       "project": "infra",
-      "created_at": 
+      "created_at": "2026-02-08T17:00:00",
+      "updated_at": "2026-02-08T20:52:00",
+      "details": "Configured UFW firewall, hardened SSH, disabled rpcbind. Security audit complete.",
+      "sub_agent_id": null
+    }
   ]
 }
