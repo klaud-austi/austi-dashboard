@@ -158,11 +158,11 @@
       "id": "c3",
       "title": "Appendix 3Y extractor",
       "description": "Extract director interest changes from Appendix 3Y filings",
-      "status": "in_progress",
+      "status": "done",
       "project": "mining",
       "created_at": "2026-02-08T17:00:00",
-      "updated_at": "2026-02-08T17:00:00",
-      "details": "Sub-agent building Appendix 3Y extractor",
+      "updated_at": "2026-02-08T18:10:18.445319",
+      "details": "Built extract_3y.py \u2014 14 fields, tested on 2 PDFs (West Wits, Many Peaks). Integrated into pipeline.",
       "sub_agent_id": null
     },
     {
