@@ -180,23 +180,23 @@
       "id": "c5",
       "title": "Reddit problem scraper",
       "description": "Scrape Reddit for common developer pain points and API ideas",
-      "status": "in_progress",
+      "status": "done",
       "project": "api-factory",
       "created_at": "2026-02-08T17:00:00",
-      "updated_at": "2026-02-08T20:52:00",
-      "details": "Sub-agent scraping r/webdev, r/programming, r/startups, r/SaaS for pain points and API opportunities.",
-      "sub_agent_id": "agent:main:subagent:2af8fb08-aa62-47eb-b74e-0215f6f4f4da"
+      "updated_at": "2026-02-08T21:00:00",
+      "details": "Built reddit_scraper.py — scraped 7 subreddits (140 posts), scored pain signals, output ready for API Factory prioritization.",
+      "sub_agent_id": null
     },
     {
       "id": "c6",
       "title": "JSON formatter proof of concept",
       "description": "Build PoC for a hosted JSON formatting/validation API",
-      "status": "in_progress",
+      "status": "done",
       "project": "api-factory",
       "created_at": "2026-02-08T17:00:00",
-      "updated_at": "2026-02-08T20:52:00",
-      "details": "Sub-agent building FastAPI app with format/validate/minify/transform endpoints plus simple HTML UI.",
-      "sub_agent_id": "agent:main:subagent:188f49c2-708c-42ad-b419-60e8cf7b8ccb"
+      "updated_at": "2026-02-08T21:00:00",
+      "details": "Built FastAPI app with format/validate/minify/transform endpoints, HTML UI, all tests passing.",
+      "sub_agent_id": null
     },
     {
       "id": "c7",
