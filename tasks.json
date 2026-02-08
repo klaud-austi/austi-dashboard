@@ -136,22 +136,22 @@
       "id": "c1",
       "title": "Resource estimate (MRE) extractor",
       "description": "Extract JORC resource estimates from announcements",
-      "status": "in_progress",
+      "status": "done",
       "project": "mining",
       "created_at": "2026-02-08T17:00:00",
-      "updated_at": "2026-02-08T17:00:00",
-      "details": "Sub-agent building MRE table extractor",
+      "updated_at": "2026-02-08T18:16:00",
+      "details": "Built extract_mre.py — extracts tonnage, grades, classifications from resource tables. Tested on sample files, integrated into pipeline.",
       "sub_agent_id": null
     },
     {
       "id": "c2",
       "title": "Capital raise extractor",
       "description": "Extract capital raise details from placement/SPP announcements",
-      "status": "in_progress",
+      "status": "done",
       "project": "mining",
       "created_at": "2026-02-08T17:00:00",
-      "updated_at": "2026-02-08T17:00:00",
-      "details": "Sub-agent building capital raise extractor",
+      "updated_at": "2026-02-08T18:16:00",
+      "details": "Built extract_capital_raise.py — 7 key fields (price, shares, total, discount, use of funds, managers, type). Tested across 48 PDFs.",
       "sub_agent_id": null
     },
     {
@@ -169,13 +169,12 @@
       "id": "c4",
       "title": "Company profile generator",
       "description": "Auto-generate company profiles from extracted data",
-      "status": "todo",
+      "status": "in_progress",
       "project": "mining",
       "created_at": "2026-02-08T17:00:00",
-      "updated_at": "2026-02-08T17:00:00",
-      "details": "Aggregate all extracted data per ticker into a comprehensive company profile with financials, resources, and recent activity.",
-      "sub_agent_id": null,
-      "blocked_by": "MRE extractor"
+      "updated_at": "2026-02-08T18:16:00",
+      "details": "Sub-agent building profile generator — aggregates cash, drilling, resources, announcements per ticker.",
+      "sub_agent_id": "agent:main:subagent:9ea5dce9-8bb8-47dc-8396-ce05a60da5bc"
     },
     {
       "id": "c5",
