@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Austi AI — Task Board</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0d1117;--surface:#161b22;--border:#30363d;--text:#e6edf3;--text2:#8b949e;--blue:#1f6feb;--green:#238636;--purple:#8957e5;--orange:#d29922;--red:#f85149}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* Auth */
+.auth-overlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:1000}
+.auth-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:32px;width:340px;text-align:center}
+.auth-box h2{margin-bottom:6px;font-size:18px}
+.auth-box p{color:var(--text2);font-size:13px;margin-bottom:20px}
+.auth-box input{width:100%;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;outline:none;margin-bottom:12px}
+.auth-box input:focus{border-color:var(--blue)}
+.auth-box button{width:100%;padding:10px;background:var(--blue);border:none;border-radius:8px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s}
+.auth-box button:hover{opacity:.9}
+.auth-box button:disabled{opacity:.4;cursor:not-allowed}
+.auth-error{color:var(--red);font-size:12px;margin-top:8px;min-height:16px}
+.auth-lockout{color:var(--orange);font-size:12px;margin-top:4px}
+
+/* Dashboard */
+header{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+header h1{font-size:20px;font-weight:600}
+.stats{display:flex;gap:16px;font-size:13px;color:var(--text2)}
+.stats span{display:flex;align-items:center;gap:4px}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.board{display:flex;gap:16px;padding:20px 24px;overflow-x:auto;min-height:calc(100vh - 65px)}
+.column{flex:1;min-width:280px;max-width:400px}
+.column-header{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);padding:8px 4px;display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.column-header .count{background:var(--border);border-radius:10px;padding:1px 8px;font-size:12px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px;cursor:pointer;transition:all .15s ease;border-left:3px solid transparent}
+.card:hover{border-color:var(--border);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.card.mining{border-left-color:var(--blue)}
+.card.api-factory{border-left-color:var(--green)}
+.card.infra{border-left-color:var(--purple)}
+.card-title{font-size:14px;font-weight:600;margin-bottom:4px}
+.card-desc{font-size:12px;color:var(--text2);margin-bottom:8px;line-height:1.4}
+.card-meta{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--text2)}
+.badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:500;text-transform:uppercase;letter-spacing:.3px}
+.badge.mining{background:rgba(31,111,235,.15);color:#58a6ff}
+.badge.api-factory{background:rgba(35,134,54,.15);color:#3fb950}
+.badge.infra{background:rgba(137,87,229,.15);color:#bc8cff}
+.card-details{max-height:0;overflow:hidden;transition:max-height .3s ease;font-size:12px;color:var(--text2);line-height:1.6}
+.card.expanded .card-details{max-height:300px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.hidden{display:none !important}
+@media(max-width:768px){.board{flex-direction:column;padding:12px}.column{max-width:100%}header{padding:12px 16px}}
+</style>
+</head>
+<body>
+<script>window.TASKS_DATA = {"tasks": [{"id": "a1", "title": "HotCopper scraper", "description": "Web scraper for HotCopper forum posts and announcements", "status": "done", "project": "mining", "created_at": "2026-02-07T10:00:00", "updated_at": "2026-02-07T14:00:00", "details": "Built scraper to pull forum posts from HotCopper. Handles pagination, rate limiting, and stores raw HTML for processing.", "sub_agent_id": null}, {"id": "a2", "title": "PDF classifier", "description": "ML classifier for ASX announcement PDF types", "status": "done", "project": "mining", "created_at": "2026-02-07T11:00:00", "updated_at": "2026-02-07T15:00:00", "details": "Classifies PDFs into categories: 5B, drill results, feasibility, capital raise, etc. Uses keyword matching and structure analysis.", "sub_agent_id": null}, {"id": "a3", "title": "Appendix 5B extractor", "description": "Extract quarterly cashflow data from Appendix 5B filings", "status": "done", "project": "mining", "created_at": "2026-02-07T12:00:00", "updated_at": "2026-02-07T16:00:00", "details": "Parses Appendix 5B PDFs to extract cash receipts, payments, and net cashflow figures into structured data.", "sub_agent_id": null}, {"id": "a4", "title": "Drill results extractor", "description": "Parse drill results from ASX announcements", "status": "done", "project": "mining", "created_at": "2026-02-07T13:00:00", "updated_at": "2026-02-07T17:00:00", "details": "Extracts drill hole IDs, depths, intercepts, and grades from announcement PDFs. Handles multiple table formats.", "sub_agent_id": null}, {"id": "a5", "title": "Feasibility study extractor", "description": "Extract key metrics from feasibility studies", "status": "done", "project": "mining", "created_at": "2026-02-07T14:00:00", "updated_at": "2026-02-08T10:00:00", "details": "Pulls NPV, IRR, AISC, mine life, capex and other key metrics from PFS/DFS/BFS documents.", "sub_agent_id": null}, {"id": "a6", "title": "Unified pipeline orchestrator", "description": "Orchestrates the full announcement processing pipeline", "status": "done", "project": "mining", "created_at": "2026-02-08T08:00:00", "updated_at": "2026-02-08T12:00:00", "details": "Coordinates download → classify → extract → store workflow. Handles retries, logging, and parallel processing.", "sub_agent_id": null}, {"id": "a7", "title": "SQLite database + schema", "description": "Database schema and ORM for all extracted data", "status": "done", "project": "mining", "created_at": "2026-02-08T09:00:00", "updated_at": "2026-02-08T13:00:00", "details": "SQLite DB with tables for announcements, extractions, tickers, prices. Includes migrations and query helpers.", "sub_agent_id": null}, {"id": "a8", "title": "Daily briefing generator + cron job", "description": "Automated daily briefing email/report generation", "status": "done", "project": "mining", "created_at": "2026-02-08T10:00:00", "updated_at": "2026-02-08T14:00:00", "details": "Generates daily summary of new announcements, price movements, and key events. Runs via cron at 7am AEST.", "sub_agent_id": null}, {"id": "a9", "title": "Price/volume tracker + impact scoring", "description": "Track price and volume changes with announcement impact correlation", "status": "done", "project": "mining", "created_at": "2026-02-08T11:00:00", "updated_at": "2026-02-08T15:00:00", "details": "Uses yfinance to track price/volume. Scores announcement impact by correlating price moves within 24-48h window.", "sub_agent_id": null}, {"id": "a10", "title": "Watchlist expansion (33 tickers)", "description": "Expanded watchlist from initial set to 33 ASX tickers", "status": "done", "project": "mining", "created_at": "2026-02-08T12:00:00", "updated_at": "2026-02-08T16:00:00", "details": "Curated watchlist of 33 ASX mining/exploration tickers based on market cap, activity, and sector coverage.", "sub_agent_id": null}, {"id": "a11", "title": "Briefing polish (dedup, filtering, formatting)", "description": "Improved briefing quality with deduplication and formatting", "status": "done", "project": "mining", "created_at": "2026-02-08T14:00:00", "updated_at": "2026-02-08T17:00:00", "details": "Added dedup logic, relevance filtering, and clean markdown formatting to daily briefings.", "sub_agent_id": null}, {"id": "b1", "title": "Bulk backfill", "description": "Backfill 3000 announcements across 33 tickers", "status": "in_progress", "project": "mining", "created_at": "2026-02-08T16:00:00", "updated_at": "2026-02-08T17:14:00", "details": "Processing historical announcements for all 33 watchlist tickers. ~3000 PDFs to download, classify, and extract. Progress tracked in pipeline logs.", "sub_agent_id": null}, {"id": "c1", "title": "Resource estimate (MRE) extractor", "description": "Extract JORC resource estimates from announcements", "status": "todo", "project": "mining", "created_at": "2026-02-08T17:00:00", "updated_at": "2026-02-08T17:00:00", "details": "Parse mineral resource estimate tables — tonnes, grade, contained metal. Handle measured/indicated/inferred categories.", "sub_agent_id": null}, {"id": "c2", "title": "Capital raise extractor", "description": "Extract capital raise details from placement/SPP announcements", "status": "todo", "project": "mining", "created_at": "2026-02-08T17:00:00", "updated_at": "2026-02-08T17:00:00", "details": "Parse capital raise announcements for amount, price, discount, use of funds.", "sub_agent_id": null}, {"id": "c3", "title": "Appendix 3Y extractor", "description": "Extract director interest changes from Appendix 3Y filings", "status": "todo", "project": "mining", "created_at": "2026-02-08T17:00:00", "updated_at": "2026-02-08T17:00:00", "details": "Parse director trading notifications for buy/sell amounts, prices, and holdings changes.", "sub_agent_id": null}, {"id": "c4", "title": "Company profile generator", "description": "Auto-generate company profiles from extracted data", "status": "todo", "project": "mining", "created_at": "2026-02-08T17:00:00", "updated_at": "2026-02-08T17:00:00", "details": "Aggregate all extracted data per ticker into a comprehensive company profile with financials, resources, and recent activity.", "sub_agent_id": null}, {"id": "c5", "title": "Reddit problem scraper", "description": "Scrape Reddit for common developer pain points and API ideas", "status": "todo", "project": "api-factory", "created_at": "2026-02-08T17:00:00", "updated_at": "2026-02-08T17:00:00", "details": "Scrape subreddits (webdev, programming, SaaS) for recurring problems that could be solved with simple APIs.", "sub_agent_id": null}, {"id": "c6", "title": "JSON formatter proof of concept", "description": "Build PoC for a hosted JSON formatting/validation API", "status": "todo", "project": "api-factory", "created_at": "2026-02-08T17:00:00", "updated_at": "2026-02-08T17:00:00", "details": "Simple API endpoint that formats, validates, and transforms JSON. First product for the API Factory.", "sub_agent_id": null}, {"id": "c7", "title": "Pi security hardening", "description": "Firewall, SSH hardening, disable rpcbind", "status": "todo", "project": "infra", "created_at": "2026-02-08T17:00:00", "updated_at": "2026-02-08T17:00:00", "details": "Configure UFW firewall rules, harden SSH config (key-only, no root), disable unnecessary services like rpcbind.", "sub_agent_id": null}]};</script>
+
+<!-- Auth Gate -->
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-box">
+    <h2>⚡ Austi AI</h2>
+    <p>Enter password to access the task board</p>
+    <input type="password" id="authInput" placeholder="Password" autocomplete="off">
+    <button id="authBtn" onclick="tryAuth()">Sign In</button>
+    <div class="auth-error" id="authError"></div>
+    <div class="auth-lockout" id="authLockout"></div>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard" class="hidden">
+  <header>
+    <h1>⚡ Austi AI — Task Board</h1>
+    <div class="stats" id="stats"></div>
+  </header>
+  <div class="board" id="board"></div>
+</div>
+
+<script>
+// --- Auth ---
+const HASH = '152bbbe26ee014ba4ac84ba57930aa51e3d8fbedef719c283c317546cbe194b0';
+const MAX_ATTEMPTS = 2;
+const LOCKOUT_MS = 60000;
+const SESSION_KEY = 'austi_auth';
+const ATTEMPTS_KEY = 'austi_attempts';
+const LOCKOUT_KEY = 'austi_lockout';
+
+async function sha256(msg) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(msg));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+function getAttempts() {
+  const d = localStorage.getItem(ATTEMPTS_KEY);
+  if (!d) return {count:0, first:0};
+  return JSON.parse(d);
+}
+
+function setAttempts(a) {
+  localStorage.setItem(ATTEMPTS_KEY, JSON.stringify(a));
+}
+
+function isLockedOut() {
+  const lock = parseInt(localStorage.getItem(LOCKOUT_KEY) || '0');
+  if (!lock) return false;
+  const remaining = lock + LOCKOUT_MS - Date.now();
+  if (remaining <= 0) {
+    localStorage.removeItem(LOCKOUT_KEY);
+    localStorage.removeItem(ATTEMPTS_KEY);
+    return false;
+  }
+  return remaining;
+}
+
+function updateLockoutDisplay() {
+  const remaining = isLockedOut();
+  const el = document.getElementById('authLockout');
+  const btn = document.getElementById('authBtn');
+  if (remaining) {
+    const secs = Math.ceil(remaining / 1000);
+    el.textContent = `Too many attempts. Try again in ${secs}s`;
+    btn.disabled = true;
+    setTimeout(updateLockoutDisplay, 1000);
+  } else {
+    el.textContent = '';
+    btn.disabled = false;
+  }
+}
+
+async function tryAuth() {
+  const input = document.getElementById('authInput');
+  const err = document.getElementById('authError');
+  const pw = input.value;
+
+  if (isLockedOut()) return;
+  if (!pw) { err.textContent = 'Enter a password'; return; }
+
+  const h = await sha256(pw);
+  if (h === HASH) {
+    sessionStorage.setItem(SESSION_KEY, '1');
+    localStorage.removeItem(ATTEMPTS_KEY);
+    localStorage.removeItem(LOCKOUT_KEY);
+    showDashboard();
+  } else {
+    const a = getAttempts();
+    const now = Date.now();
+    // Reset attempts if window expired
+    if (now - a.first > LOCKOUT_MS) {
+      a.count = 1; a.first = now;
+    } else {
+      a.count++;
+    }
+    setAttempts(a);
+
+    if (a.count >= MAX_ATTEMPTS) {
+      localStorage.setItem(LOCKOUT_KEY, String(Date.now()));
+      err.textContent = '';
+      updateLockoutDisplay();
+    } else {
+      err.textContent = `Wrong password (${MAX_ATTEMPTS - a.count} attempt remaining)`;
+    }
+    input.value = '';
+    input.focus();
+  }
+}
+
+function showDashboard() {
+  document.getElementById('authOverlay').classList.add('hidden');
+  document.getElementById('dashboard').classList.remove('hidden');
+  load();
+}
+
+// Enter key
+document.getElementById('authInput').addEventListener('keydown', e => { if (e.key === 'Enter') tryAuth(); });
+
+// Check session
+if (sessionStorage.getItem(SESSION_KEY) === '1') {
+  showDashboard();
+} else {
+  updateLockoutDisplay();
+}
+
+// --- Dashboard ---
+const COLS = [
+  {key:'todo', label:'To Do'},
+  {key:'in_progress', label:'In Progress'},
+  {key:'done', label:'Done'}
+];
+
+let tasks = [];
+
+async function load() {
+  if (window.TASKS_DATA) {
+    tasks = window.TASKS_DATA.tasks;
+    render();
+    return;
+  }
+  try {
+    const r = await fetch('/api/tasks');
+    const d = await r.json();
+    tasks = d.tasks;
+    render();
+  } catch(e) {}
+}
+
+function fmtDate(s) {
+  if (!s) return '';
+  const d = new Date(s);
+  return d.toLocaleDateString('en-AU',{day:'numeric',month:'short'}) + ' ' + d.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit',hour12:false});
+}
+
+function render() {
+  const board = document.getElementById('board');
+  const stats = document.getElementById('stats');
+  const counts = {};
+  COLS.forEach(c => counts[c.key] = 0);
+  tasks.forEach(t => counts[t.status] = (counts[t.status]||0)+1);
+  stats.innerHTML = `<span><span class="dot" style="background:var(--orange)"></span>${counts.todo||0} todo</span><span><span class="dot" style="background:var(--blue)"></span>${counts.in_progress||0} active</span><span><span class="dot" style="background:var(--green)"></span>${counts.done||0} done</span>`;
+
+  board.innerHTML = COLS.map(col => {
+    const items = tasks.filter(t => t.status === col.key);
+    return `<div class="column"><div class="column-header">${col.label}<span class="count">${items.length}</span></div>${items.map(t => `
+      <div class="card ${t.project}" onclick="this.classList.toggle('expanded')" data-id="${t.id}">
+        <div class="card-title">${esc(t.title)}</div>
+        <div class="card-desc">${esc(t.description)}</div>
+        <div class="card-meta"><span class="badge ${t.project}">${t.project}</span><span>${fmtDate(t.updated_at)}</span></div>
+        <div class="card-details">
+          <p>${esc(t.details||'No details yet.')}</p>
+          ${t.sub_agent_id ? `<p style="margin-top:6px">🤖 Agent: ${esc(t.sub_agent_id)}</p>` : ''}
+        </div>
+      </div>`).join('')}</div>`;
+  }).join('');
+}
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+</script>
+</body>
+</html>
